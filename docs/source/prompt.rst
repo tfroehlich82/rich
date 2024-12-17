@@ -1,7 +1,7 @@
 Prompt
 ======
 
-Rich has a number :class:`~rich.prompt.Prompt` classes which ask a user for input and loop until a valid response is received. Here's a simple example::
+Rich has a number of :class:`~rich.prompt.Prompt` classes which ask a user for input and loop until a valid response is received (they all use the :ref:`Console API<Input>` internally). Here's a simple example::
 
     >>> from rich.prompt import Prompt
     >>> name = Prompt.ask("Enter your name")
@@ -17,6 +17,13 @@ If you supply a list of choices, the prompt will loop until the user enters one 
 
     >>> from rich.prompt import Prompt
     >>> name = Prompt.ask("Enter your name", choices=["Paul", "Jessica", "Duncan"], default="Paul")
+
+By default this is case sensitive, but you can set `case_sensitive=False` to make it case insensitive::
+
+    >>> from rich.prompt import Prompt
+    >>> name = Prompt.ask("Enter your name", choices=["Paul", "Jessica", "Duncan"], default="Paul", case_sensitive=False)
+
+Now, it would accept "paul" or "Paul" as valid responses.
 
 In addition to :class:`~rich.prompt.Prompt` which returns strings, you can also use :class:`~rich.prompt.IntPrompt` which asks the user for an integer, and :class:`~rich.prompt.FloatPrompt` for floats.
 

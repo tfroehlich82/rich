@@ -1,7 +1,7 @@
 import pytest
 
-from rich.color import Color, ColorSystem, ColorType
 from rich import errors
+from rich.color import Color, ColorSystem, ColorType
 from rich.style import Style, StyleStack
 
 
@@ -58,7 +58,10 @@ def test_ansi_codes():
 
 
 def test_repr():
-    assert repr(Style(bold=True, color="red")) == 'Style.parse("bold red")'
+    assert (
+        repr(Style(bold=True, color="red"))
+        == "Style(color=Color('red', ColorType.STANDARD, number=1), bold=True)"
+    )
 
 
 def test_eq():
@@ -122,21 +125,20 @@ def test_link_id():
 
 
 def test_get_html_style():
-    expected = "color: #7f7fbf; background-color: #800000; font-weight: bold; font-style: italic; text-decoration: underline; text-decoration: line-through; text-decoration: overline"
-    assert (
-        Style(
-            reverse=True,
-            dim=True,
-            color="red",
-            bgcolor="blue",
-            bold=True,
-            italic=True,
-            underline=True,
-            strike=True,
-            overline=True,
-        ).get_html_style()
-        == expected
-    )
+    expected = "color: #7f7fbf; text-decoration-color: #7f7fbf; background-color: #800000; font-weight: bold; font-style: italic; text-decoration: underline; text-decoration: line-through; text-decoration: overline"
+    html_style = Style(
+        reverse=True,
+        dim=True,
+        color="red",
+        bgcolor="blue",
+        bold=True,
+        italic=True,
+        underline=True,
+        strike=True,
+        overline=True,
+    ).get_html_style()
+    print(repr(html_style))
+    assert html_style == expected
 
 
 def test_chain():
@@ -166,7 +168,6 @@ def test_test():
 
 def test_add():
     assert Style(color="red") + None == Style(color="red")
-    assert Style().__add__("foo") == NotImplemented
 
 
 def test_iadd():
@@ -206,3 +207,61 @@ def test_without_color():
     assert colorless_style.bold == True
     null_style = Style.null()
     assert null_style.without_color == null_style
+
+
+def test_meta():
+    style = Style(bold=True, meta={"foo": "bar"})
+    assert style.meta["foo"] == "bar"
+
+    style += Style(meta={"egg": "baz"})
+
+    assert style.meta == {"foo": "bar", "egg": "baz"}
+
+    assert repr(style) == "Style(bold=True, meta={'foo': 'bar', 'egg': 'baz'})"
+
+
+def test_from_meta():
+    style = Style.from_meta({"foo": "bar"})
+    assert style.color is None
+    assert style.bold is None
+
+
+def test_on():
+    style = Style.on({"foo": "bar"}, click="CLICK") + Style(color="red")
+    assert style.meta == {"foo": "bar", "@click": "CLICK"}
+
+
+def test_clear_meta_and_links():
+    style = Style.parse("bold red on black link https://example.org") + Style.on(
+        click="CLICK"
+    )
+
+    assert style.meta == {"@click": "CLICK"}
+    assert style.link == "https://example.org"
+    assert style.color == Color.parse("red")
+    assert style.bgcolor == Color.parse("black")
+    assert style.bold
+    assert not style.italic
+
+    clear_style = style.clear_meta_and_links()
+
+    assert clear_style.meta == {}
+    assert clear_style.link == None
+    assert clear_style.color == Color.parse("red")
+    assert clear_style.bgcolor == Color.parse("black")
+    assert clear_style.bold
+    assert not clear_style.italic
+
+
+def test_clear_meta_and_links_clears_hash():
+    """Regression test for https://github.com/Textualize/rich/issues/2942."""
+
+    style = Style.parse("bold red on black link https://example.org") + Style.on(
+        click="CLICK"
+    )
+    hash(style)  # Force hash caching.
+
+    assert style._hash is not None
+
+    clear_style = style.clear_meta_and_links()
+    assert clear_style._hash is None

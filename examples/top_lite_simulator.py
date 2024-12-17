@@ -1,7 +1,7 @@
 """Lite simulation of the top linux command."""
-
 import datetime
 import random
+import sys
 import time
 from dataclasses import dataclass
 
@@ -9,7 +9,11 @@ from rich import box
 from rich.console import Console
 from rich.live import Live
 from rich.table import Table
-from typing_extensions import Literal
+
+if sys.version_info >= (3, 8):
+    from typing import Literal
+else:
+    from typing_extensions import Literal
 
 
 @dataclass
@@ -49,7 +53,6 @@ def generate_process(pid: int) -> Process:
 
 
 def create_process_table(height: int) -> Table:
-
     processes = sorted(
         [generate_process(pid) for pid in range(height)],
         key=lambda p: p.cpu_percent,
@@ -75,7 +78,7 @@ def create_process_table(height: int) -> Table:
 
 console = Console()
 
-with Live(console=console, transient=True, auto_refresh=False) as live:
+with Live(console=console, screen=True, auto_refresh=False) as live:
     while True:
         live.update(create_process_table(console.size.height - 4), refresh=True)
         time.sleep(1)

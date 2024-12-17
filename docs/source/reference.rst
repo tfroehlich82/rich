@@ -12,6 +12,8 @@ Reference
    reference/emoji.rst
    reference/highlighter.rst
    reference/init.rst
+   reference/json.rst
+   reference/layout.rst
    reference/live.rst
    reference/logging.rst
    reference/markdown.rst
